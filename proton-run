@@ -1,0 +1,47 @@
+#!/usr/bin/python3
+
+import os
+import sys
+import subprocess
+
+def main():
+    steam_root = os.path.expanduser("~/.steam/root")
+    protoncfg_dir = os.path.expanduser("~/.proton")
+    proton_dir = os.path.expanduser("~/.steam/root/steamapps/common/Proton - Experimental")
+
+    # Help menu
+    if "-h" in sys.argv or "--help" in sys.argv or len(sys.argv) < 2:
+        print("Usage: proton-run <command> [arguments...]")
+        exit(1)
+
+    # Verbose stuffs
+    verbose = "--proton-run-debug" in sys.argv
+    if verbose:
+        sys.argv.remove("--proton-run-debug")
+
+    # Check if running as root
+    if os.geteuid() == 0:
+        print("This script must **NOT** be run as root.")
+        sys.exit(1)
+
+    # Check if Proton Experimental is installed
+    if not os.path.exists(proton_dir):
+        print("Error: Proton Experimental not installed, please install it using steam.")
+        sys.exit(1)
+
+    # Ensure Proton data directory exists
+    os.makedirs(protoncfg_dir, exist_ok=True)
+
+    # Prepare environment
+    env = os.environ.copy()
+    env["STEAM_COMPAT_DATA_PATH"] = protoncfg_dir
+    env["STEAM_COMPAT_CLIENT_INSTALL_PATH"] = steam_root
+
+    # Run the given command
+    try:
+        subprocess.run([proton_dir + "/proton", "run"] + sys.argv[1:], env=env, check=True, stdout=None if verbose else subprocess.DEVNULL, stderr=None if verbose else subprocess.DEVNULL)
+    except subprocess.CalledProcessError as e:
+        sys.exit(e.returncode)
+
+if __name__ == "__main__":
+    main()

@@ -1,2 +1,2 @@
 # proton-run
-A utillity to run windows executables using steam's proton.
+A utility to run windows executables using steam's proton.
